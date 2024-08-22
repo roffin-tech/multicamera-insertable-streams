@@ -92,13 +92,13 @@
       videoPreviewElm.id = id
       videoPreviewElm.autoplay = true
       videoPreviewElm.controls = false
-      videoPreviewElm.height = 360
-      videoPreviewElm.width = 640
+      videoPreviewElm.height = 720
+      videoPreviewElm.width = 1280
     }
     videoPreviewElm.srcObject = stream
 
     return { videoPreviewElm, alreadyPresent }
-    
+
   }
 
   function stopTracks() {
@@ -121,8 +121,8 @@
     streams.forEach((stream, index) => {
       const videoPreviewElm = document.createElement('video')
       videoPreviewElm.id = `video-${index + 1}`
-      videoPreviewElm.height = 240
-      videoPreviewElm.width = 320
+      videoPreviewElm.height = 360
+      videoPreviewElm.width = 640
       videoPreviewElm.srcObject = stream
       videoPreviewElm.autoplay = true
       videoPreviewElm.controls = true
