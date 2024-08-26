@@ -10,71 +10,23 @@ export class CanvasDrawer {
      *     effect. Initialized in init.
      */
     this.ctx_ = ctx;
+    this.ctx_.fillStyle = 'black';
     /** @private {string} */
     this.debugPath_ = 'debug.pipeline.frameTransform_';
     this.videos_ = videos;
     this.config_ = config;
+    // this.videoCofig_ = config;
   }
 
   async draw() {
-    const dataConfig = {
-      1: {
-        0: {
-          x: 0,
-          y: 0,
-        },
-      },
-      2: {
-        0: {
-          x: 0,
-          y: 180,
-        },
-        1: {
-          x: 640,
-          y: 180,
-        },
-      },
-      3: {
-        0: {
-          x: 0,
-          y: 0,
-        },
-        1: {
-          x: 640,
-          y: 0,
-        },
-        2: {
-          x: 320,
-          y: 360,
-        },
-      },
-      4: {
-        0: {
-          x: 0,
-          y: 0,
-        },
-        1: {
-          x: 640,
-          y: 0,
-        },
-        2: {
-          x: 0,
-          y: 360,
-        },
-        3: {
-          x: 640,
-          y: 360,
-        },
-      },
-      5: {},
-    };
+    const dataConfig = config;
     try {
       for (let index = 0; index < this.videos_.length; index++) {
-        const start = dataConfig[this.videos_.length][index].x;
-        const end = dataConfig[this.videos_.length][index].y;
+        const start = await dataConfig[this.videos_.length][index].x;
+        const end = await dataConfig[this.videos_.length][index].y;
         console.log('canvas', start, end);
 
-        const stream = this.videos_[index];
+        const stream = await this.videos_[index];
         await this.ctx_.drawImage(stream, start, end, 640, 360);
       }
     } catch (error) {

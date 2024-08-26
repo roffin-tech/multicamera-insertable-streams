@@ -3,7 +3,7 @@
     <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a>
       <span>Video processing with insertable streams</span>
     </h1>
-    <canvas id="video1" width="640" height="360" style="display: none;"></canvas>
+    <canvas id="video1" width="1280" height="720" style="display: none;"></canvas>
     <!-- <video id="video2" width="640" height="360" controls playsinline autoplay muted></video> -->
 
   </div>
