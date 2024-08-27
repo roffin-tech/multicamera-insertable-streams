@@ -78,6 +78,8 @@
     if (!videoElement.alreadyPresent)
       body?.appendChild(videoElement.videoPreviewElm)
 
+    // speechDetector()
+
   })
 
   onBeforeUnmount(() => {

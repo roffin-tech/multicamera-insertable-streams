@@ -8,6 +8,8 @@
 
 'use strict';
 
+import { SpeechDetector } from './speech-detector';
+
 /**
  * Applies a picture-frame effect using CanvasRenderingContext2D.
  * @implements {FrameTransform} in pipeline.js
@@ -28,6 +30,9 @@ export class CanvasTransform {
     /** @private {string} */
     this.debugPath_ = 'debug.pipeline.frameTransform_';
     this.canvasDrawer_ = canvasDrawer;
+
+    this.speechDetector_ = new SpeechDetector();
+    this.speechDetector_.init();
   }
   /** @override */
   async init() {
@@ -65,6 +70,7 @@ export class CanvasTransform {
     const canvasDrawer = await this.canvasDrawer_.draw(this.canvas_);
     frame.close();
 
+    await this.speechDetector_.detectForVideo('video-2342343434');
     // ctx.shadowColor = '#000';
     // ctx.shadowBlur = 20;
     // ctx.lineWidth = 50;
