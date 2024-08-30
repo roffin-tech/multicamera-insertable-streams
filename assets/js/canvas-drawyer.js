@@ -23,7 +23,7 @@ export class CanvasDrawer {
       for (let index = 0; index < this.videos_.length; index++) {
         const start = await dataConfig[this.videos_.length][index].x;
         const end = await dataConfig[this.videos_.length][index].y;
-        const stream = await this.videos_[index];
+        const stream = await this.videos_[index].streamElement;
         await this.ctx_.drawImage(stream, start, end, 640, 360);
       }
     } catch (error) {

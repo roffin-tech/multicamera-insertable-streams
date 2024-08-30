@@ -29,11 +29,12 @@
     const devices = await streams.getMediaDevices();
     videoStreams.value = await streams.getVideoStreams(devices);
     const streamElements = renderVideoStreams(videoStreams.value) || [];
-    const canvasDrawer = new CanvasDrawer(streamElements, canvas, ctx);
+    const formattedStreamElements = await formatStreamElements(streamElements);
+    const canvasDrawer = new CanvasDrawer(formattedStreamElements, canvas, ctx);
 
     const stream = videoStreams.value[0]
 
-    const _transformer = new CanvasTransform(canvasDrawer)
+    const _transformer = new CanvasTransform(canvasDrawer, formattedStreamElements);
     await _transformer.init()
     const videoTrack = stream.getVideoTracks()[0]
     const _abortController = new AbortController()
@@ -83,6 +84,23 @@
   onBeforeUnmount(() => {
     stopTracks()
   })
+
+  async function formatStreamElements(streamElements: any) {
+    const formattedStreamElements = [];
+    for (let index = 0; index < streamElements.length; index++) {
+      const element = await  streamElements[index];
+      await formattedStreamElements.push({
+        id: index,
+        quadrant: index + 1,
+        streamElement: element,
+        newQuadrant: index + 1,
+        mouthPucker: {
+          score: 990 + index
+        }
+      })
+    }
+    return formattedStreamElements
+  }
 
   function createVideoElement(id, stream) {
     let videoPreviewElm: any = document.getElementById(id)
