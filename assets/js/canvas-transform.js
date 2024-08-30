@@ -9,6 +9,8 @@
 'use strict';
 
 import { SpeechDetector } from './speech-detector';
+import config from '@/config/layout';
+import { endPointConfig, MASTER_VIDEO } from '@/config/frame';
 
 /**
  * Applies a picture-frame effect using CanvasRenderingContext2D.
@@ -16,7 +18,7 @@ import { SpeechDetector } from './speech-detector';
  */
 export class CanvasTransform {
   // eslint-disable-line no-unused-vars
-  constructor(canvasDrawer) {
+  constructor(canvasDrawer, videos) {
     /**
      * @private {?OffscreenCanvas} canvas used to create the 2D context.
      *     Initialized in init.
@@ -33,6 +35,10 @@ export class CanvasTransform {
 
     this.speechDetector_ = new SpeechDetector();
     this.speechDetector_.init();
+
+    this.videos_ = videos;
+
+    this.once_ = false;
   }
   /** @override */
   async init() {
@@ -70,7 +76,18 @@ export class CanvasTransform {
     const canvasDrawer = await this.canvasDrawer_.draw(this.canvas_);
     frame.close();
 
-    await this.speechDetector_.detectForVideo('video-2342343434');
+    const results = await this.speechDetector_.detectForVideo(
+      'video-2342343434'
+    );
+
+    if (results) await this.rankFaces(results);
+    // console.log('this.videos_', this.videos_, results);
+
+    // if (!this.once_ && results) {
+    // console.log('faceLandmarker', results);
+    //   this.once_ = true;
+    // }
+
     // ctx.shadowColor = '#000';
     // ctx.shadowBlur = 20;
     // ctx.lineWidth = 50;
@@ -81,6 +98,63 @@ export class CanvasTransform {
     controller.enqueue(
       new VideoFrame(canvasDrawer.canvas, { timestamp, alpha: 'discard' })
     );
+  }
+
+  async rankFaces(results) {
+    const faceBlendshapes = results.faceBlendshapes;
+    const faceLandmarks = results.faceLandmarks;
+    for (let index = 0; index < faceBlendshapes.length; index++) {
+      const element = faceBlendshapes[index];
+      const categories = element.categories;
+      const mouthPucker = await categories.find(
+        (category) => category.categoryName === 'mouthPucker'
+      );
+
+      const quadrant = await this.isInQuadrant(
+        faceLandmarks[index][0].x,
+        faceLandmarks[index][0].y,
+        this.videos_.length
+      );
+
+      // console.log('mouthPucker', mouthPucker, quadrant);
+      if (quadrant > -1) {
+        this.videos_[quadrant].mouthPucker = await mouthPucker;
+      }
+    }
+    await this.videos_.sort((a, b) => {
+      console.log(
+        'a',
+        a?.mouthPucker?.score,
+        'b',
+        b?.mouthPucker?.score,
+        parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score)
+      );
+
+      return (
+        parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score)
+      );
+    });
+  }
+
+  async isInQuadrant(x, y, videoElementsCount) {
+    for (let index = 0; index < videoElementsCount; index++) {
+      const frameX = MASTER_VIDEO.x;
+      const frameY = MASTER_VIDEO.y;
+
+      const startFrameX = config[videoElementsCount][index]?.x;
+      const startFrameY = config[videoElementsCount][index]?.y;
+      const endFrameX = endPointConfig[videoElementsCount][index]?.x;
+      const endFrameY = endPointConfig[videoElementsCount][index]?.y;
+
+      const isInCurrentQuadrant =
+        x * frameX >= startFrameX &&
+        y * frameY >= startFrameY &&
+        x * frameX <= endFrameX &&
+        y * frameY <= endFrameY;
+
+      if (isInCurrentQuadrant) return index;
+    }
+    return -1;
   }
 
   /** @override */

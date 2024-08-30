@@ -37,8 +37,10 @@ export class SpeechDetector {
       this.lastVideoTime_ = video.currentTime;
       if (this.faceLandmarker_) {
         const results = this.faceLandmarker_.detectForVideo(video, startTimeMs);
-        console.log('faceLandmarker', results);
+        
+        return results;
       }
     }
+    return null;
   }
 }
