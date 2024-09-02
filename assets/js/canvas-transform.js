@@ -39,6 +39,10 @@ export class CanvasTransform {
     this.videos_ = videos;
 
     this.once_ = false;
+
+    this.outputCanvas_ = document.getElementById('canvas2');
+    this.outputCtx_ = this.outputCanvas_.getContext('2d');
+    this.outputVideos_ = [];
   }
   /** @override */
   async init() {
@@ -80,7 +84,10 @@ export class CanvasTransform {
       'video-2342343434'
     );
 
-    if (results) await this.rankFaces(results);
+    if (results) {
+      this.outputVideos_ = await this.rankFaces(results);
+      await this.draw();
+    }
     // console.log('this.videos_', this.videos_, results);
 
     // if (!this.once_ && results) {
@@ -101,6 +108,10 @@ export class CanvasTransform {
   }
 
   async rankFaces(results) {
+    if (!results) {
+      return this.outputVideos_;
+    }
+    const videosCopy = [...this.videos_];
     const faceBlendshapes = results.faceBlendshapes;
     const faceLandmarks = results.faceLandmarks;
     for (let index = 0; index < faceBlendshapes.length; index++) {
@@ -113,27 +124,31 @@ export class CanvasTransform {
       const quadrant = await this.isInQuadrant(
         faceLandmarks[index][0].x,
         faceLandmarks[index][0].y,
-        this.videos_.length
+        videosCopy.length
       );
 
       // console.log('mouthPucker', mouthPucker, quadrant);
       if (quadrant > -1) {
-        this.videos_[quadrant].mouthPucker = await mouthPucker;
+        videosCopy[quadrant].mouthPucker = await mouthPucker;
       }
     }
-    await this.videos_.sort((a, b) => {
-      console.log(
-        'a',
-        a?.mouthPucker?.score,
-        'b',
-        b?.mouthPucker?.score,
-        parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score)
-      );
+    const sortedVideos = await videosCopy.sort((a, b) => {
+      // console.log(
+      //   'a',
+      //   a?.mouthPucker?.score,
+      //   'b',
+      //   b?.mouthPucker?.score,
+      //   'a - b',
+      //   parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score),
+      //   'index',
+      //   a.id, b.id
+      // );
 
       return (
         parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score)
       );
     });
+    return sortedVideos;
   }
 
   async isInQuadrant(x, y, videoElementsCount) {
@@ -155,6 +170,20 @@ export class CanvasTransform {
       if (isInCurrentQuadrant) return index;
     }
     return -1;
+  }
+
+  async draw() {
+    const dataConfig = config;
+    try {
+      for (let index = 0; index < this.outputVideos_.length; index++) {
+        const start = await dataConfig[this.outputVideos_.length][index].x;
+        const end = await dataConfig[this.outputVideos_.length][index].y;
+        const stream = await this.outputVideos_[index].streamElement;
+        await this.outputCtx_.drawImage(stream, start, end, 640, 360);
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
   }
 
   /** @override */

@@ -66,8 +66,8 @@ export class StreamProcessor {
     }
   }
 
-  createCanvas() {
-    const canvas = document.getElementById('video1');
+  createCanvas(canvasId = 'canvas1') {
+    const canvas = document.getElementById(canvasId);
     const ctx = canvas.getContext('2d');
     console.log('canvas', canvas, 'ctx', ctx);
 

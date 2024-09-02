@@ -3,8 +3,9 @@
     <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a>
       <span>Video processing with insertable streams</span>
     </h1>
-    <canvas id="video1" width="1280" height="720" style="display: none;"></canvas>
-    <!-- <video id="video2" width="640" height="360" controls playsinline autoplay muted></video> -->
+    <canvas id="canvas1" width="1280" height="720" style="display: none;"></canvas>
+    <canvas id="canvas2" width="1280" height="720" style="display: none;"></canvas>
+    <video id="video2" width="1280" height="720" :controls="false" playsinline autoplay muted></video>
   </div>
 </template>
 
@@ -25,7 +26,7 @@
     }
 
     const streams = new StreamProcessor();
-    const { canvas, ctx } = streams.createCanvas();
+    const { canvas, ctx } = streams.createCanvas('canvas1');
     const devices = await streams.getMediaDevices();
     videoStreams.value = await streams.getVideoStreams(devices);
     const streamElements = renderVideoStreams(videoStreams.value) || [];
@@ -70,6 +71,11 @@
       sink.abort(e)
     })
 
+    const canvas2 = document.getElementById('canvas2')
+    const video2: any = document.getElementById('video2')
+    let outputStream = canvas2?.captureStream(30)
+    video2.srcObject = outputStream
+
     const streamAfter = new MediaStream([trackGenerator])
 
     const body = document.querySelector('body')
@@ -88,7 +94,7 @@
   async function formatStreamElements(streamElements: any) {
     const formattedStreamElements = [];
     for (let index = 0; index < streamElements.length; index++) {
-      const element = await  streamElements[index];
+      const element = await streamElements[index];
       await formattedStreamElements.push({
         id: index,
         quadrant: index + 1,
