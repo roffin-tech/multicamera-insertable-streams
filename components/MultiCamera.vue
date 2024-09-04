@@ -4,7 +4,7 @@
       <span>Video processing with insertable streams</span>
     </h1>
     <canvas id="canvas1" width="1280" height="720" style="display: none;"></canvas>
-    <canvas id="canvas2" width="1280" height="720" style="display: none;"></canvas>
+    <canvas id="canvas2" width="1280" height="720"></canvas>
     <video id="video2" width="1280" height="720" :controls="false" playsinline autoplay muted></video>
   </div>
 </template>
@@ -97,11 +97,16 @@
       const element = await streamElements[index];
       await formattedStreamElements.push({
         id: index,
+        videoId: `video-${index + 1}`,
         quadrant: index + 1,
         streamElement: element,
         newQuadrant: index + 1,
         mouthPucker: {
-          score: 990 + index
+          score: -1
+        },
+        results: {
+          faceBlendshapes: [],
+          faceLandmarks: []
         }
       })
     }
@@ -118,6 +123,7 @@
       videoPreviewElm.controls = false
       videoPreviewElm.height = 720
       videoPreviewElm.width = 1280
+      videoPreviewElm.style.display = 'none'
     }
     videoPreviewElm.srcObject = stream
 

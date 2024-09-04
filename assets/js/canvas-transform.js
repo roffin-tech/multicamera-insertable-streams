@@ -10,7 +10,6 @@
 
 import { SpeechDetector } from './speech-detector';
 import config from '@/config/layout';
-import { endPointConfig, MASTER_VIDEO } from '@/config/frame';
 
 /**
  * Applies a picture-frame effect using CanvasRenderingContext2D.
@@ -33,8 +32,10 @@ export class CanvasTransform {
     this.debugPath_ = 'debug.pipeline.frameTransform_';
     this.canvasDrawer_ = canvasDrawer;
 
-    this.speechDetector_ = new SpeechDetector();
-    this.speechDetector_.init();
+    this.speechDetector1_ = new SpeechDetector();
+    this.speechDetector2_ = new SpeechDetector();
+    this.speechDetector1_.init();
+    this.speechDetector2_.init();
 
     this.videos_ = videos;
 
@@ -78,98 +79,45 @@ export class CanvasTransform {
 
     ctx.drawImage(frame, 0, 0);
     const canvasDrawer = await this.canvasDrawer_.draw(this.canvas_);
+    const videos = [...this.videos_];
+    const detectedVideos = await this.multiVideoDetector(videos);
     frame.close();
 
-    const results = await this.speechDetector_.detectForVideo(
-      'video-2342343434'
-    );
+    this.outputVideos_ = await this.sortVideos(detectedVideos);
+    // const results = await this.speechDetector_.detectForVideo(
+    //   'video-2342343434'
+    // );
 
-    if (results) {
-      this.outputVideos_ = await this.rankFaces(results);
-      await this.draw();
-    }
-    // console.log('this.videos_', this.videos_, results);
+    // if (results) {
+    // this.outputVideos_ = await this.rankFaces(results);
+    await this.draw();
 
-    // if (!this.once_ && results) {
-    // console.log('faceLandmarker', results);
-    //   this.once_ = true;
     // }
 
-    // ctx.shadowColor = '#000';
-    // ctx.shadowBlur = 20;
-    // ctx.lineWidth = 50;
-    // ctx.strokeStyle = '#000';
-    // ctx.strokeRect(0, 0, width, height);
-
-    // alpha: 'discard' is needed in order to send frames to a PeerConnection.
     controller.enqueue(
       new VideoFrame(canvasDrawer.canvas, { timestamp, alpha: 'discard' })
     );
   }
 
-  async rankFaces(results) {
-    if (!results) {
-      return this.outputVideos_;
-    }
-    const videosCopy = [...this.videos_];
-    const faceBlendshapes = results.faceBlendshapes;
-    const faceLandmarks = results.faceLandmarks;
-    for (let index = 0; index < faceBlendshapes.length; index++) {
-      const element = faceBlendshapes[index];
-      const categories = element.categories;
-      const mouthPucker = await categories.find(
-        (category) => category.categoryName === 'mouthPucker'
-      );
-
-      const quadrant = await this.isInQuadrant(
-        faceLandmarks[index][0].x,
-        faceLandmarks[index][0].y,
-        videosCopy.length
-      );
-
-      // console.log('mouthPucker', mouthPucker, quadrant);
-      if (quadrant > -1) {
-        videosCopy[quadrant].mouthPucker = await mouthPucker;
-      }
-    }
+  async sortVideos(videosCopy) {
     const sortedVideos = await videosCopy.sort((a, b) => {
-      // console.log(
-      //   'a',
-      //   a?.mouthPucker?.score,
-      //   'b',
-      //   b?.mouthPucker?.score,
-      //   'a - b',
-      //   parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score),
-      //   'index',
-      //   a.id, b.id
-      // );
+      console.log(
+        'a',
+        a?.mouthPucker?.score,
+        'b',
+        b?.mouthPucker?.score,
+        'a - b',
+        parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score),
+        'index',
+        a.id,
+        b.id
+      );
 
       return (
-        parseFloat(a?.mouthPucker?.score) - parseFloat(b?.mouthPucker?.score)
+        parseFloat(b?.mouthPucker?.score) - parseFloat(a?.mouthPucker?.score)
       );
     });
     return sortedVideos;
-  }
-
-  async isInQuadrant(x, y, videoElementsCount) {
-    for (let index = 0; index < videoElementsCount; index++) {
-      const frameX = MASTER_VIDEO.x;
-      const frameY = MASTER_VIDEO.y;
-
-      const startFrameX = config[videoElementsCount][index]?.x;
-      const startFrameY = config[videoElementsCount][index]?.y;
-      const endFrameX = endPointConfig[videoElementsCount][index]?.x;
-      const endFrameY = endPointConfig[videoElementsCount][index]?.y;
-
-      const isInCurrentQuadrant =
-        x * frameX >= startFrameX &&
-        y * frameY >= startFrameY &&
-        x * frameX <= endFrameX &&
-        y * frameY <= endFrameY;
-
-      if (isInCurrentQuadrant) return index;
-    }
-    return -1;
   }
 
   async draw() {
@@ -184,6 +132,47 @@ export class CanvasTransform {
     } catch (error) {
       console.log('error', error);
     }
+  }
+
+  async multiVideoDetector(videos) {
+    try {
+      // for (let index = 0; index < videos.length; index++) {
+      const results = await this[`speechDetector1_`].detectForVideo(
+        videos[0].videoId
+      );
+      // console.log('results0', results);
+
+      if (results) videos[0].mouthPucker = await this.setMouthPucker(results);
+
+      const results1 = await this[`speechDetector2_`].detectForVideo(
+        videos[1].videoId
+      );
+      // console.log('results1', results1);
+
+      if (results1) videos[1].mouthPucker = await this.setMouthPucker(results1);
+      // }
+    } catch (error) {
+      console.log('error', error);
+    }
+    // console.log('videos', videos);
+
+    return videos;
+  }
+
+  async setMouthPucker(results) {
+    const faceBlendshapes = results.faceBlendshapes;
+    // const faceLandmarks = results.faceLandmarks;
+    if (!faceBlendshapes || faceBlendshapes.length === 0) {
+      return {
+        score: -1,
+      };
+    }
+    const element = faceBlendshapes[0];
+    const categories = element.categories;
+    const mouthPucker = await categories.find(
+      (category) => category.categoryName === 'mouthPucker'
+    );
+    return mouthPucker;
   }
 
   /** @override */

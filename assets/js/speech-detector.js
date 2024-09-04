@@ -17,7 +17,7 @@ export class SpeechDetector {
           'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task',
       },
       runningMode: 'VIDEO',
-      numFaces: 5,
+      numFaces: 1,
       outputFaceBlendshapes: true,
     });
   }
@@ -37,7 +37,7 @@ export class SpeechDetector {
       this.lastVideoTime_ = video.currentTime;
       if (this.faceLandmarker_) {
         const results = this.faceLandmarker_.detectForVideo(video, startTimeMs);
-        
+
         return results;
       }
     }
