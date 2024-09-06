@@ -15,9 +15,10 @@ export class SpeechDetector {
       baseOptions: {
         modelAssetPath:
           'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task',
+        delegate: 'GPU',
       },
       runningMode: 'VIDEO',
-      numFaces: 5,
+      numFaces: 1,
       outputFaceBlendshapes: true,
     });
   }
@@ -33,11 +34,11 @@ export class SpeechDetector {
   async detectForVideo(videoId) {
     const video = document.getElementById(videoId);
     let startTimeMs = performance.now();
-    if (this.lastVideoTime_ !== video.currentTime) {
+    if (this.lastVideoTime_ !== video?.currentTime) {
       this.lastVideoTime_ = video.currentTime;
       if (this.faceLandmarker_) {
         const results = this.faceLandmarker_.detectForVideo(video, startTimeMs);
-        
+
         return results;
       }
     }

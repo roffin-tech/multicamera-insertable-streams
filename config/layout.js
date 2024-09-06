@@ -4,6 +4,8 @@ export default {
       x: 0,
       y: 0,
     },
+    width: 1280,
+    height: 720,
   },
   2: {
     0: {
@@ -14,6 +16,8 @@ export default {
       x: 640,
       y: 180,
     },
+    width: 640,
+    height: 360,
   },
   3: {
     0: {
@@ -28,6 +32,8 @@ export default {
       x: 320,
       y: 360,
     },
+    width: 640,
+    height: 360,
   },
   4: {
     0: {
@@ -46,6 +52,8 @@ export default {
       x: 640,
       y: 360,
     },
+    width: 640,
+    height: 360,
   },
   5: {},
 };

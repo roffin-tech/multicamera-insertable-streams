@@ -3,8 +3,9 @@
     <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a>
       <span>Video processing with insertable streams</span>
     </h1>
-    <canvas id="video1" width="1280" height="720" style="display: none;"></canvas>
-    <!-- <video id="video2" width="640" height="360" controls playsinline autoplay muted></video> -->
+    <canvas id="canvas1" width="1280" height="720" style="display: none;"></canvas>
+    <canvas id="canvas2" width="1280" height="720" style="display: none;"></canvas>
+    <video id="video-2-a" width="1280" height="720" :controls="false" playsinline autoplay muted></video>
   </div>
 </template>
 
@@ -70,11 +71,23 @@
       sink.abort(e)
     })
 
+    const canvas2 = document.getElementById('canvas2')
+
+    let outputStream = canvas2?.captureStream(30)
+
+    if (outputStream) {
+      const body = document.querySelector('body')
+      // video2.srcObject = outputStream
+      const videoElement: any = createVideoElement('video-2-a', outputStream)
+      if (!videoElement.alreadyPresent)
+        body?.appendChild(videoElement.videoPreviewElm)
+    }
     const streamAfter = new MediaStream([trackGenerator])
 
     const body = document.querySelector('body')
     const videoElement: any = createVideoElement('video-2342343434', streamAfter)
     if (!videoElement.alreadyPresent)
+      videoElement.videoPreviewElm.style.display = 'none'
       body?.appendChild(videoElement.videoPreviewElm)
 
     // speechDetector()
@@ -88,14 +101,19 @@
   async function formatStreamElements(streamElements: any) {
     const formattedStreamElements = [];
     for (let index = 0; index < streamElements.length; index++) {
-      const element = await  streamElements[index];
+      const element = await streamElements[index];
       await formattedStreamElements.push({
         id: index,
+        videoId: `video-${index + 1}`,
         quadrant: index + 1,
         streamElement: element,
         newQuadrant: index + 1,
         mouthPucker: {
-          score: 990 + index
+          score: -1
+        },
+        results: {
+          faceBlendshapes: [],
+          faceLandmarks: []
         }
       })
     }
