@@ -220,7 +220,7 @@ export class CanvasTransform {
     const mouthPucker = await categories.find(
       (category) => category.categoryName === 'mouthPucker'
     );
-    return mouthPucker;
+    return { mouthPucker: mouthPucker?.score || -1 };
   }
 
   async multiVideoProcessor(videos) {

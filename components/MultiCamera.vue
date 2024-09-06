@@ -88,7 +88,7 @@
     const videoElement: any = createVideoElement('video-2342343434', streamAfter)
     if (!videoElement.alreadyPresent)
       videoElement.videoPreviewElm.style.display = 'none'
-      body?.appendChild(videoElement.videoPreviewElm)
+    body?.appendChild(videoElement.videoPreviewElm)
 
     // speechDetector()
 
@@ -108,6 +108,8 @@
         quadrant: index + 1,
         streamElement: element,
         newQuadrant: index + 1,
+        previousMouthPuckerCoefficient: 0,
+        mouthPuckerCoefficient: 0,
         mouthPucker: {
           score: -1
         },
